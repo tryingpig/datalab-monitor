@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>데이터랩 관측소 — 검색량으로 보는 시장 관심도</title>
+<meta name="description" content="네이버 데이터랩 검색어 트렌드로 테마별 관심도와 투자심리 온도를 관측합니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead__title">
+    <span class="masthead__mark" aria-hidden="true"></span>
+    <h1>데이터랩 관측소</h1>
+  </div>
+  <p class="masthead__sub">네이버 검색량으로 읽는 시장 관심도</p>
+  <p class="masthead__stamp" id="stamp">불러오는 중</p>
+</header>
+
+<div class="sample-note" id="sampleNote" hidden>
+  샘플 데이터입니다. <code>python -m collector</code> 를 한 번 돌리면 실제 값으로 바뀝니다.
+</div>
+
+<nav class="tabs" role="tablist" aria-label="관측 항목">
+  <button class="tab is-active" role="tab" id="tab-themes" aria-controls="panel-themes" aria-selected="true">테마 관심도</button>
+  <button class="tab" role="tab" id="tab-mood" aria-controls="panel-mood" aria-selected="false">공포 · 탐욕</button>
+</nav>
+
+<main>
+  <!-- ─────────── 테마 관심도 ─────────── -->
+  <section class="panel" id="panel-themes" role="tabpanel" aria-labelledby="tab-themes">
+    <div class="readout" id="themeReadout"></div>
+
+    <p class="panel__hint">
+      막대는 <b>4주 전 대비 변화</b>, 오른쪽 숫자는 <b>3년 이력 중 현재 위치(백분위)</b>입니다.
+      행을 누르면 전체 추이가 열립니다.
+    </p>
+
+    <ol class="rail" id="themeRail"></ol>
+
+    <p class="footnote">
+      데이터랩은 절대 검색량이 아니라 조회 구간 안의 상대 지수를 줍니다.
+      테마끼리 나란히 비교할 수 있도록 매 호출에 같은 앵커 키워드를 넣어 한 축으로 맞췄습니다.
+    </p>
+  </section>
+
+  <!-- ─────────── 공포 · 탐욕 ─────────── -->
+  <section class="panel" id="panel-mood" role="tabpanel" aria-labelledby="tab-mood" hidden>
+    <div class="gauge" id="gauge"></div>
+
+    <div class="mood-history">
+      <h2 class="section-title">지수 1년 추이</h2>
+      <div id="moodChart"></div>
+    </div>
+
+    <div class="signals">
+      <div class="signals__col signals__col--hot">
+        <h2 class="section-title">탐욕 신호</h2>
+        <ul id="greedList"></ul>
+      </div>
+      <div class="signals__col signals__col--cold">
+        <h2 class="section-title">공포 신호</h2>
+        <ul id="fearList"></ul>
+      </div>
+    </div>
+
+    <p class="footnote">
+      각 키워드군을 표준화한 뒤 탐욕 쪽과 공포 쪽의 차이로 만든 <b>실험적 보조지표</b>입니다.
+      옆에 붙는 백분율은 최근 7일 평균이 90일 평균에서 얼마나 벗어났는지를 뜻합니다.
+      검증된 지표가 아니니 단독 매매 근거로 쓰지 마세요.
+    </p>
+  </section>
+</main>
+
+<footer class="colophon">
+  <span>출처 · 네이버 데이터랩 검색어 트렌드</span>
+  <span>갱신 · 평일 18:30 KST</span>
+</footer>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

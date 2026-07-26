@@ -1,0 +1,41 @@
+# 테마 관심도 설정
+#
+# anchor: 모든 API 호출에 함께 넣는 기준 키워드.
+#   데이터랩은 "한 번의 호출 안에서" 최댓값을 100으로 잡기 때문에,
+#   호출을 여러 번 나누면 서로 스케일이 달라집니다.
+#   같은 앵커를 매 호출에 끼워 넣고 그 비율로 되돌리면 전부 같은 자로 잽니다.
+#   앵커는 검색량이 극단적으로 크거나 작지 않은 것을 고르세요.
+anchor:
+  groupName: 앵커
+  keywords: [코스피]
+
+# 조회 기간 (일 단위 lookback)
+lookback_days: 1095   # 3년
+time_unit: week       # date | week | month
+
+# 각 그룹당 키워드는 최대 20개까지 가능합니다.
+groups:
+  - groupName: HBM·고대역폭메모리
+    keywords: [HBM, 고대역폭메모리, HBM4]
+  - groupName: 유리기판
+    keywords: [유리기판, 글라스기판, TGV]
+  - groupName: 실리콘포토닉스·CPO
+    keywords: [실리콘포토닉스, CPO, 광트랜시버]
+  - groupName: 휴머노이드로봇
+    keywords: [휴머노이드, 휴머노이드로봇, 피지컬AI]
+  - groupName: 원전·SMR
+    keywords: [SMR, 소형모듈원자로, 원전주]
+  - groupName: 전력기기·변압기
+    keywords: [변압기, 전력기기, 초고압케이블]
+  - groupName: 2차전지
+    keywords: [2차전지, 전고체배터리, 이차전지]
+  - groupName: 비만치료제
+    keywords: [비만치료제, 위고비, GLP-1]
+  - groupName: 조선·방산
+    keywords: [조선주, 방산주, K방산]
+  - groupName: AI데이터센터
+    keywords: [AI데이터센터, 데이터센터, 액침냉각]
+  - groupName: 로봇수술·의료AI
+    keywords: [의료AI, 로봇수술]
+  - groupName: 양자컴퓨팅
+    keywords: [양자컴퓨팅, 양자컴퓨터]

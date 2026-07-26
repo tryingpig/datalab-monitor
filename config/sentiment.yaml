@@ -1,0 +1,34 @@
+# 공포·탐욕 보조지표 설정
+#
+# 탐욕(greed) 쪽 키워드가 뜨면 신규 진입·레버리지 수요가 늘고 있다는 신호,
+# 공포(fear) 쪽이 뜨면 청산·투매 국면이라는 신호로 읽습니다.
+# 검증된 지표가 아니라 참고용 보조 관찰치입니다. 단독 매매 근거로 쓰지 마세요.
+
+anchor:
+  groupName: 앵커
+  keywords: [코스피]
+
+lookback_days: 365
+time_unit: date       # date | week | month
+
+# 지수 민감도. 값이 클수록 게이지가 크게 흔들립니다.
+sensitivity: 12
+
+# 표시용 이동평균 (일)
+smooth_days: 7
+
+greed:
+  - groupName: 계좌개설
+    keywords: [주식계좌개설, 증권계좌개설, 주식시작]
+  - groupName: 레버리지
+    keywords: [빚투, 신용융자, 미수거래]
+  - groupName: 추격매수
+    keywords: [상한가, 급등주, 테마주]
+
+fear:
+  - groupName: 강제청산
+    keywords: [반대매매, 마진콜]
+  - groupName: 폭락
+    keywords: [증시폭락, 주가폭락, 블랙먼데이]
+  - groupName: 손실회피
+    keywords: [손절, 물타기, 주식손실]
