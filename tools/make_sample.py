@@ -29,49 +29,74 @@ def wave(n: int, drift: float, noise: float, phase: float) -> list[float]:
     return out
 
 
+def _win_stats(points, days):
+    """collector.themes._window_stats 와 같은 계산(샘플용 복제)."""
+    last = points[-1]
+    target = (date.fromisoformat(last["period"]) - timedelta(days=days)).isoformat()
+    window = [p for p in points if p["period"] > target] or points
+    ref = None
+    for p in points[:-1]:
+        if p["period"] <= target:
+            ref = p
+    if ref is None and window[0]["period"] < last["period"]:
+        ref = window[0]
+    change = round((last["ratio"] / ref["ratio"] - 1) * 100, 1) if ref and ref["ratio"] > 0 else None
+    vals = [p["ratio"] for p in window]
+    below = sum(1 for v in vals if v <= last["ratio"])
+    return {"change": change, "peak": round(max(vals), 2), "percentile": round(below / len(vals) * 100, 1)}
+
+
 def make_themes() -> dict:
     cfg = yaml.safe_load(open("config/themes.yaml", encoding="utf-8"))
-    weeks = 156
+    days = cfg["lookback_days"]
+    smooth = cfg.get("smooth_days", 7)
+    windows = cfg["windows"]
     end = date.today()
-    periods = [(end - timedelta(weeks=weeks - 1 - i)).isoformat() for i in range(weeks)]
+    periods = [(end - timedelta(days=days - 1 - i)).isoformat() for i in range(days)]
 
     raw = {}
     for idx, group in enumerate(cfg["groups"]):
-        drift = random.uniform(-0.12, 0.35)
-        raw[group["groupName"]] = wave(weeks, drift, 2.2, idx * 0.7)
+        drift = random.uniform(-0.05, 0.12)
+        raw[group["groupName"]] = wave(days, drift, 2.6, idx * 0.7)
 
-    peak = max(v for series in raw.values() for v in series)
+    # 7일 이동평균
+    def smoothed(vals):
+        out = []
+        for i in range(len(vals)):
+            chunk = vals[max(0, i - smooth + 1) : i + 1]
+            out.append(sum(chunk) / len(chunk))
+        return out
+
+    sm = {name: smoothed(vals) for name, vals in raw.items()}
+    peak = max(v for series in sm.values() for v in series)
     factor = 100 / peak
 
     themes = []
     for group in cfg["groups"]:
         name = group["groupName"]
-        values = [round(v * factor, 2) for v in raw[name]]
-        points = [{"period": periods[i], "ratio": values[i]} for i in range(weeks)]
-        ordered = sorted(values)
-        below = sum(1 for v in ordered if v <= values[-1])
+        values = [round(v * factor, 2) for v in sm[name]]
+        points = [{"period": periods[i], "ratio": values[i]} for i in range(days)]
         themes.append(
             {
                 "name": name,
                 "keywords": group["keywords"],
                 "current": values[-1],
-                "peak": max(values),
-                "percentile": round(below / len(values) * 100, 1),
-                "change_short": round((values[-1] / values[-5] - 1) * 100, 1),
-                "change_long": round((values[-1] / values[-13] - 1) * 100, 1),
+                "windows": {w["key"]: _win_stats(points, w["days"]) for w in windows},
                 "series": points,
             }
         )
 
-    themes.sort(key=lambda t: -t["change_short"])
+    default_window = cfg.get("default_window", windows[0]["key"])
+    themes.sort(key=lambda t: (t["windows"][default_window]["change"] is None,
+                               -(t["windows"][default_window]["change"] or 0)))
     return {
         "sample": True,
         "generated_at": datetime.now(KST).isoformat(timespec="seconds"),
         "start_date": periods[0],
         "end_date": periods[-1],
-        "time_unit": "week",
-        "span_short_label": "4주",
-        "span_long_label": "12주",
+        "time_unit": "date",
+        "windows": windows,
+        "default_window": default_window,
         "themes": themes,
     }
 

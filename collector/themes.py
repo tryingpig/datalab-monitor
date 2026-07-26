@@ -1,6 +1,7 @@
 """테마 관심도 수집기.
 
-각 테마의 검색 관심도를 같은 축에 올린 뒤, 최근 수준과 4주 전 대비 변화를 계산합니다.
+1년치를 일간으로 한 번 받아 같은 축에 올린 뒤, 1개월/3개월/6개월/1년 각 기간별로
+변화율·기간최고·백분위를 미리 계산합니다. 화면은 버튼으로 기간을 바꾸며 봅니다.
 """
 
 from __future__ import annotations
@@ -15,30 +16,38 @@ from . import datalab
 KST = timezone(timedelta(hours=9))
 
 
-def _change(points: list[dict], days: int) -> float | None:
-    """마지막 값 대비 days 일 전 값의 변화율(%).
+def _moving_average(points: list[dict], window: int) -> list[dict]:
+    """일간 데이터의 튐을 줄이는 이동평균. period 는 유지, ratio 만 평활."""
+    if window <= 1 or not points:
+        return points
+    values = [p["ratio"] for p in points]
+    out = []
+    for i in range(len(points)):
+        chunk = values[max(0, i - window + 1) : i + 1]
+        out.append({"period": points[i]["period"], "ratio": round(sum(chunk) / len(chunk), 4)})
+    return out
 
-    인덱스가 아니라 실제 날짜로 되짚습니다. 데이터랩이 저볼륨 구간을 빼고
-    주면 '몇 칸 전'과 '며칠 전'이 어긋나기 때문입니다.
-    """
-    if not points:
-        return None
-    now = points[-1]["ratio"]
-    target = datalab.shift_iso(points[-1]["period"], days)
+
+def _window_stats(points: list[dict], days: int) -> dict:
+    """최근 days 구간의 변화율·기간최고·백분위. 날짜 기준으로 자릅니다."""
+    last = points[-1]
+    target = datalab.shift_iso(last["period"], days)
+    window = [p for p in points if p["period"] > target] or points
+
     ref = datalab.value_on_or_before(points[:-1], target)
-    if ref is None or ref["ratio"] <= 0:
-        return None
-    return round((now / ref["ratio"] - 1) * 100, 1)
+    if ref is None and window[0]["period"] < last["period"]:
+        ref = window[0]  # 기간이 보유 데이터보다 길면 가진 범위의 시작점 기준
+    if ref and ref["ratio"] > 0:
+        change = round((last["ratio"] / ref["ratio"] - 1) * 100, 1)
+    else:
+        change = None
 
+    values = [p["ratio"] for p in window]
+    peak = max(values)
+    below = sum(1 for v in values if v <= last["ratio"])
+    percentile = round(below / len(values) * 100, 1)
 
-def _percentile(points: list[dict]) -> float:
-    """현재 값이 자기 이력에서 몇 번째 백분위인지."""
-    values = sorted(p["ratio"] for p in points)
-    if not values:
-        return 0.0
-    current = points[-1]["ratio"]
-    below = sum(1 for v in values if v <= current)
-    return round(below / len(values) * 100, 1)
+    return {"change": change, "peak": round(peak, 2), "percentile": percentile}
 
 
 def build(config_path: str = "config/themes.yaml") -> dict:
@@ -46,7 +55,7 @@ def build(config_path: str = "config/themes.yaml") -> dict:
         cfg = yaml.safe_load(fh)
 
     start, end = datalab.date_range(cfg["lookback_days"])
-    time_unit = cfg.get("time_unit", "week")
+    time_unit = cfg.get("time_unit", "date")
     print(f"테마 관심도 수집: {start} ~ {end} ({time_unit})")
 
     merged = datalab.fetch(
@@ -56,11 +65,12 @@ def build(config_path: str = "config/themes.yaml") -> dict:
         end_date=end,
         time_unit=time_unit,
     )
+
+    smooth = cfg.get("smooth_days", 7)
+    merged = {name: _moving_average(pts, smooth) for name, pts in merged.items()}
     merged = datalab.rescale_to_100(merged)
 
-    # 날짜 기준으로 되짚습니다: 4주 = 28일, 12주 = 84일.
-    span_short = 28
-    span_long = 84
+    windows = cfg["windows"]
 
     themes = []
     for group in cfg["groups"]:
@@ -74,15 +84,19 @@ def build(config_path: str = "config/themes.yaml") -> dict:
                 "name": name,
                 "keywords": group["keywords"],
                 "current": points[-1]["ratio"],
-                "peak": max(p["ratio"] for p in points),
-                "percentile": _percentile(points),
-                "change_short": _change(points, span_short),
-                "change_long": _change(points, span_long),
+                "windows": {w["key"]: _window_stats(points, w["days"]) for w in windows},
                 "series": points,
             }
         )
 
-    themes.sort(key=lambda t: (t["change_short"] is None, -(t["change_short"] or 0)))
+    default_window = cfg.get("default_window", windows[0]["key"])
+    # 기본 기간의 변화율로 미리 정렬해 둡니다(화면에서 기간 바꾸면 다시 정렬).
+    themes.sort(
+        key=lambda t: (
+            t["windows"][default_window]["change"] is None,
+            -(t["windows"][default_window]["change"] or 0),
+        )
+    )
 
     return {
         "sample": False,
@@ -90,8 +104,8 @@ def build(config_path: str = "config/themes.yaml") -> dict:
         "start_date": start,
         "end_date": end,
         "time_unit": time_unit,
-        "span_short_label": "4주" if time_unit == "week" else "4주",
-        "span_long_label": "12주" if time_unit == "week" else "12주",
+        "windows": windows,
+        "default_window": default_window,
         "themes": themes,
     }
 

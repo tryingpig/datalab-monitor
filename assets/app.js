@@ -124,6 +124,21 @@ function lineChart(points, valueKey, color, options = {}) {
 
 /* ── 테마 관심도 ───────────────────────────────────── */
 
+/* ISO 날짜를 days 만큼 뒤로. */
+function shiftISO(iso, days) {
+  const d = new Date(iso + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
+/* 시계열에서 최근 days 구간만 잘라냅니다. */
+function sliceWindow(series, days) {
+  if (!series.length) return series;
+  const target = shiftISO(series[series.length - 1].period, days);
+  const cut = series.filter((p) => p.period > target);
+  return cut.length >= 2 ? cut : series;
+}
+
 function renderThemes(data) {
   const themes = data.themes;
   if (!themes || themes.length === 0) {
@@ -134,58 +149,95 @@ function renderThemes(data) {
       `<li class="footnote">수집된 테마가 없습니다. 키워드 설정을 확인하세요.</li>`;
     return;
   }
-  const rising = themes.filter((t) => (t.change_short ?? 0) > 0).length;
-  const falling = themes.length - rising;
-  const hottest = themes[0];
 
-  $("themeReadout").innerHTML = [
-    ["관측 테마", `${themes.length}`, ""],
-    ["관심 상승", `${rising}`, "is-hot"],
-    ["관심 하락", `${falling}`, "is-cold"],
-    ["최고 상승", signed(hottest.change_short), toneOf(hottest.change_short)],
-  ]
+  const windows = data.windows || [{ key: "1y", days: 365, label: "1년" }];
+  const daysOf = (key) => (windows.find((w) => w.key === key) || windows[0]).days;
+  let current = data.default_window || windows[0].key;
+
+  // 기간 버튼
+  $("themeWindows").innerHTML = windows
     .map(
-      ([label, value, tone]) => `<div class="readout__cell">
-        <span class="readout__label">${label}</span>
-        <span class="readout__value ${tone}">${value}</span>
-      </div>`
+      (w) => `<button class="winbtn${w.key === current ? " is-active" : ""}" type="button"
+        data-win="${w.key}" aria-pressed="${w.key === current}">${esc(w.label)}</button>`
     )
     .join("");
 
-  const widest = Math.max(...themes.map((t) => Math.abs(t.change_short ?? 0)), 1);
+  function draw(winKey) {
+    current = winKey;
+    const days = daysOf(winKey);
+    const stat = (t) => t.windows[winKey] || {};
+    const chg = (t) => stat(t).change;
 
-  $("themeRail").innerHTML = themes
-    .map((theme, index) => {
-      const change = theme.change_short;
-      const tone = toneOf(change);
-      const pct = (Math.abs(change ?? 0) / widest) * 50;
-      const dir = (change ?? 0) >= 0 ? "hot" : "cold";
-      const color = (change ?? 0) >= 0 ? HOT : COLD;
-      const values = theme.series.map((p) => p.ratio);
+    const ranked = [...themes].sort(
+      (a, b) => (chg(a) === null) - (chg(b) === null) || (chg(b) ?? 0) - (chg(a) ?? 0)
+    );
+    const rising = ranked.filter((t) => (chg(t) ?? 0) > 0).length;
+    const falling = ranked.filter((t) => (chg(t) ?? 0) < 0).length;
+    const hottest = ranked[0];
 
-      return `<li class="rail__item">
-        <button class="rail__row" type="button" aria-expanded="false" data-index="${index}">
-          <span class="rail__name">${esc(theme.name)}
-            <span class="rail__keywords">${esc(theme.keywords.join(" · "))}</span>
-          </span>
-          ${sparkline(values, 64, 20, color)}
-          <span class="rail__bar">
-            <span class="rail__fill rail__fill--${dir}" style="width:${pct.toFixed(1)}%"></span>
-          </span>
-          <span class="rail__change ${tone}">${signed(change)}</span>
-        </button>
-      </li>`;
-    })
-    .join("");
+    $("themeReadout").innerHTML = [
+      ["관측 테마", `${themes.length}`, ""],
+      ["관심 상승", `${rising}`, "is-hot"],
+      ["관심 하락", `${falling}`, "is-cold"],
+      ["최고 상승", signed(chg(hottest)), toneOf(chg(hottest))],
+    ]
+      .map(
+        ([label, value, tone]) => `<div class="readout__cell">
+          <span class="readout__label">${label}</span>
+          <span class="readout__value ${tone}">${value}</span>
+        </div>`
+      )
+      .join("");
+
+    const widest = Math.max(...ranked.map((t) => Math.abs(chg(t) ?? 0)), 1);
+
+    $("themeRail").innerHTML = ranked
+      .map((theme) => {
+        const change = chg(theme);
+        const tone = toneOf(change);
+        const pct = (Math.abs(change ?? 0) / widest) * 50;
+        const dir = (change ?? 0) >= 0 ? "hot" : "cold";
+        const color = (change ?? 0) >= 0 ? HOT : COLD;
+        const values = sliceWindow(theme.series, days).map((p) => p.ratio);
+
+        return `<li class="rail__item">
+          <button class="rail__row" type="button" aria-expanded="false" data-name="${esc(theme.name)}">
+            <span class="rail__name">${esc(theme.name)}
+              <span class="rail__keywords">${esc(theme.keywords.join(" · "))}</span>
+            </span>
+            ${sparkline(values, 64, 20, color)}
+            <span class="rail__bar">
+              <span class="rail__fill rail__fill--${dir}" style="width:${pct.toFixed(1)}%"></span>
+            </span>
+            <span class="rail__change ${tone}">${signed(change)}</span>
+          </button>
+        </li>`;
+      })
+      .join("");
+  }
+
+  draw(current);
+
+  $("themeWindows").addEventListener("click", (event) => {
+    const btn = event.target.closest(".winbtn");
+    if (!btn) return;
+    [...$("themeWindows").children].forEach((b) => {
+      const on = b === btn;
+      b.classList.toggle("is-active", on);
+      b.setAttribute("aria-pressed", String(on));
+    });
+    draw(btn.dataset.win);
+  });
 
   $("themeRail").addEventListener("click", (event) => {
     const row = event.target.closest(".rail__row");
     if (!row) return;
-    toggleTheme(row, themes[Number(row.dataset.index)], data);
+    const theme = themes.find((t) => t.name === row.dataset.name);
+    toggleTheme(row, theme, current, daysOf(current), windows);
   });
 }
 
-function toggleTheme(row, theme, data) {
+function toggleTheme(row, theme, winKey, days, windows) {
   const item = row.parentElement;
   const open = row.getAttribute("aria-expanded") === "true";
   const existing = item.querySelector(".rail__detail");
@@ -197,19 +249,22 @@ function toggleTheme(row, theme, data) {
   }
 
   row.setAttribute("aria-expanded", "true");
-  const color = (theme.change_short ?? 0) >= 0 ? HOT : COLD;
+  const stat = theme.windows[winKey] || {};
+  const label = (windows.find((w) => w.key === winKey) || {}).label || "";
+  const color = (stat.change ?? 0) >= 0 ? HOT : COLD;
+  const sliced = sliceWindow(theme.series, days);
   const detail = document.createElement("div");
   detail.className = "rail__detail";
   detail.innerHTML =
-    lineChart(theme.series, "ratio", color, {
+    lineChart(sliced, "ratio", color, {
       height: 170,
-      label: `${theme.name} 검색 관심도 추이`,
+      label: `${theme.name} ${label} 검색 관심도 추이`,
     }) +
     `<p class="rail__stats">
       <span>현재 <b>${theme.current.toFixed(1)}</b></span>
-      <span>최고 <b>${theme.peak.toFixed(1)}</b></span>
-      <span>이력 백분위 <b>${theme.percentile.toFixed(0)}</b></span>
-      <span>${data.span_long_label} 전 대비 <b>${signed(theme.change_long)}</b></span>
+      <span>${label} 최고 <b>${(stat.peak ?? 0).toFixed(1)}</b></span>
+      <span>${label} 백분위 <b>${(stat.percentile ?? 0).toFixed(0)}</b></span>
+      <span>${label} 변화 <b>${signed(stat.change)}</b></span>
     </p>`;
   item.appendChild(detail);
 }

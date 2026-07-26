@@ -9,9 +9,21 @@ anchor:
   groupName: 앵커
   keywords: [코스피]
 
-# 조회 기간 (일 단위 lookback)
-lookback_days: 1095   # 3년
-time_unit: week       # date | week | month
+# 조회 기간 (일 단위 lookback). 1년치를 일간으로 한 번 받아,
+# 아래 windows 로 잘라 1개월/3개월/6개월/1년 뷰를 만듭니다.
+lookback_days: 365    # 1년
+time_unit: date       # date | week | month
+
+# 화면 상단 기간 버튼. days 만큼 최근 구간을 잘라 순위·변화율·차트를 계산합니다.
+windows:
+  - {key: "1m", days: 30,  label: "1개월"}
+  - {key: "3m", days: 90,  label: "3개월"}
+  - {key: "6m", days: 180, label: "6개월"}
+  - {key: "1y", days: 365, label: "1년"}
+default_window: "3m"
+
+# 일간 데이터는 니치 테마에서 튀므로 표시·계산 모두 이 일수의 이동평균을 씁니다.
+smooth_days: 7
 
 # 각 그룹당 키워드는 최대 20개까지 가능합니다.
 groups:

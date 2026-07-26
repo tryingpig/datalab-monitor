@@ -34,11 +34,13 @@
 <main>
   <!-- ─────────── 테마 관심도 ─────────── -->
   <section class="panel" id="panel-themes" role="tabpanel" aria-labelledby="tab-themes">
+    <div class="winbar" id="themeWindows" role="group" aria-label="관측 기간"></div>
+
     <div class="readout" id="themeReadout"></div>
 
     <p class="panel__hint">
-      막대는 <b>4주 전 대비 변화</b>, 오른쪽 숫자는 <b>3년 이력 중 현재 위치(백분위)</b>입니다.
-      행을 누르면 전체 추이가 열립니다.
+      막대는 <b>선택한 기간의 시작 대비 변화</b>, 오른쪽 숫자도 같은 기준입니다.
+      기간 버튼으로 1개월·3개월·6개월·1년을 바꿔 보고, 행을 누르면 그 기간 추이가 열립니다.
     </p>
 
     <ol class="rail" id="themeRail"></ol>
