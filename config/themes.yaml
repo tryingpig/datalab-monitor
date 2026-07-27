@@ -25,29 +25,44 @@ default_window: "3m"
 # 일간 데이터는 니치 테마에서 튀므로 표시·계산 모두 이 일수의 이동평균을 씁니다.
 smooth_days: 7
 
-# 각 그룹당 키워드는 최대 20개까지 가능합니다.
+# groups 는 폴백용 정적 목록입니다. 평소에는 sync_notion.py 가 Notion
+# 'Datalab-Monitor' DB 에서 받아 config/themes.groups.json 을 만들고 그걸 우선 씁니다.
+# (Notion 토큰이 없거나 동기화 실패 시에만 아래 목록으로 되돌아갑니다.)
+# 그룹당 키워드는 최대 20개.
 groups:
-  - groupName: HBM·고대역폭메모리
+  - groupName: HBM·메모리
     keywords: [HBM, 고대역폭메모리, HBM4]
-  - groupName: 유리기판
-    keywords: [유리기판, 글라스기판, TGV]
+  - groupName: 반도체기판(ABF·유리)
+    keywords: [유리기판, 글라스기판, ABF기판, TGV]
   - groupName: 실리콘포토닉스·CPO
     keywords: [실리콘포토닉스, CPO, 광트랜시버]
-  - groupName: 휴머노이드로봇
-    keywords: [휴머노이드, 휴머노이드로봇, 피지컬AI]
+  - groupName: 파운드리
+    keywords: [파운드리, 2나노, TSMC]
+  - groupName: AI 데이터센터
+    keywords: [AI데이터센터, 데이터센터, 액침냉각]
+  - groupName: 전력기기·전선
+    keywords: [변압기, 전력기기, 초고압케이블]
   - groupName: 원전·SMR
     keywords: [SMR, 소형모듈원자로, 원전주]
-  - groupName: 전력기기·변압기
-    keywords: [변압기, 전력기기, 초고압케이블]
-  - groupName: 2차전지
-    keywords: [2차전지, 전고체배터리, 이차전지]
-  - groupName: 비만치료제
-    keywords: [비만치료제, 위고비, GLP-1]
+  - groupName: 수소·연료전지
+    keywords: [수소, 연료전지, 수소차]
+  - groupName: 2차전지·ESS
+    keywords: [2차전지, 전고체배터리, ESS]
   - groupName: 조선·방산
     keywords: [조선주, 방산주, K방산]
-  - groupName: AI데이터센터
-    keywords: [AI데이터센터, 데이터센터, 액침냉각]
+  - groupName: 로봇·피지컬AI
+    keywords: [휴머노이드, 휴머노이드로봇, 피지컬AI]
   - groupName: 로봇수술·의료AI
     keywords: [의료AI, 로봇수술]
+  - groupName: 비만치료제
+    keywords: [비만치료제, 위고비, GLP-1]
   - groupName: 양자컴퓨팅
     keywords: [양자컴퓨팅, 양자컴퓨터]
+  - groupName: 자동차
+    keywords: [전기차, 완성차, 자동차실적]
+  - groupName: 건설
+    keywords: [건설주, 재건축]
+  - groupName: 운송·해운
+    keywords: [해운, 운임, HMM]
+  - groupName: 음식료
+    keywords: [음식료, 라면수출]

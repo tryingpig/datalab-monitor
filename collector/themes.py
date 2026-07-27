@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone, timedelta
 
 import yaml
@@ -50,16 +51,35 @@ def _window_stats(points: list[dict], days: int) -> dict:
     return {"change": change, "peak": round(peak, 2), "percentile": percentile}
 
 
+def _load_groups(cfg: dict, config_path: str) -> list[dict]:
+    """Notion 동기화본(themes.groups.json)이 있으면 그걸, 없으면 yaml 정적 groups.
+
+    sync_notion.py 가 만든 파일을 우선한다. 로컬에서 토큰 없이 돌리거나
+    동기화가 실패하면 yaml 의 정적 목록으로 자연스럽게 되돌아간다.
+    """
+    generated = os.path.join(os.path.dirname(config_path), "themes.groups.json")
+    if os.path.exists(generated):
+        with open(generated, encoding="utf-8") as fh:
+            groups = json.load(fh)
+        if groups:
+            print(f"  · 테마 목록: Notion 동기화본 {len(groups)}개 ({os.path.basename(generated)})")
+            return groups
+    print(f"  · 테마 목록: {os.path.basename(config_path)} 정적 {len(cfg['groups'])}개")
+    return cfg["groups"]
+
+
 def build(config_path: str = "config/themes.yaml") -> dict:
     with open(config_path, encoding="utf-8") as fh:
         cfg = yaml.safe_load(fh)
+
+    groups = _load_groups(cfg, config_path)
 
     start, end = datalab.date_range(cfg["lookback_days"])
     time_unit = cfg.get("time_unit", "date")
     print(f"테마 관심도 수집: {start} ~ {end} ({time_unit})")
 
     merged = datalab.fetch(
-        groups=cfg["groups"],
+        groups=groups,
         anchor=cfg["anchor"],
         start_date=start,
         end_date=end,
@@ -73,7 +93,7 @@ def build(config_path: str = "config/themes.yaml") -> dict:
     windows = cfg["windows"]
 
     themes = []
-    for group in cfg["groups"]:
+    for group in groups:
         name = group["groupName"]
         points = merged.get(name, [])
         if not points:

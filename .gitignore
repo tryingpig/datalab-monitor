@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+
+# Notion 동기화 생성물 (sync_notion.py 가 수집 직전 만듦)
+config/themes.groups.json
+config/themes.meta.json

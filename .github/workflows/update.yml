@@ -27,6 +27,12 @@ jobs:
       - name: 의존성 설치
         run: pip install -r requirements.txt
 
+      - name: 테마 목록 동기화 (Notion → config)
+        env:
+          # rs-tracker 와 동일한 Notion 통합 토큰. 없으면 themes.yaml 정적 목록으로 폴백.
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: python -m collector.sync_notion
+
       - name: 수집
         env:
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
