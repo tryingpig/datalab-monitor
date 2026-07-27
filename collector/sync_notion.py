@@ -60,6 +60,11 @@ def _csv_list(prop: dict | None) -> list[str]:
     return [x.strip() for x in raw.split(",") if x.strip()]
 
 
+def _date_start(prop: dict | None) -> str | None:
+    d = (prop or {}).get("date") or {}
+    return d.get("start")
+
+
 def fetch_themes(token: str) -> tuple[list[dict], dict]:
     groups: list[dict] = []
     meta: dict = {}
@@ -77,11 +82,21 @@ def fetch_themes(token: str) -> tuple[list[dict], dict]:
             keywords = _csv_list(p.get("검색어"))[:MAX_KEYWORDS]
             if not name or not keywords:
                 continue
-            groups.append({"groupName": name, "keywords": keywords})
+            sector = (p.get("분류", {}).get("select") or {}).get("name", "")
+            first_seen = _date_start(p.get("first_seen"))
+            # groups.json 은 수집(검색그룹) + 표시(대분류·신규배지)에 함께 쓰인다.
+            groups.append({
+                "groupName": name,
+                "keywords": keywords,
+                "sector": sector,
+                "first_seen": first_seen,
+            })
             meta[name] = {
                 "stocks": _csv_list(p.get("편입종목")),
                 "synonyms": _csv_list(p.get("동의어")),
-                "sector": (p.get("분류", {}).get("select") or {}).get("name", ""),
+                "sector": sector,
+                "first_seen": first_seen,
+                "last_seen": _date_start(p.get("last_seen")),
             }
         if not res.get("has_more"):
             break

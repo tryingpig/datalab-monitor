@@ -103,6 +103,8 @@ def build(config_path: str = "config/themes.yaml") -> dict:
             {
                 "name": name,
                 "keywords": group["keywords"],
+                "sector": group.get("sector") or "",
+                "first_seen": group.get("first_seen"),
                 "current": points[-1]["ratio"],
                 "windows": {w["key"]: _window_stats(points, w["days"]) for w in windows},
                 "series": points,
@@ -118,6 +120,12 @@ def build(config_path: str = "config/themes.yaml") -> dict:
         )
     )
 
+    # 대분류 표시 순서 = 테마가 처음 등장한 순서(고정 큐레이션 순서 유지).
+    sectors: list[str] = []
+    for t in themes:
+        if t["sector"] and t["sector"] not in sectors:
+            sectors.append(t["sector"])
+
     return {
         "sample": False,
         "generated_at": datetime.now(KST).isoformat(timespec="seconds"),
@@ -126,6 +134,7 @@ def build(config_path: str = "config/themes.yaml") -> dict:
         "time_unit": time_unit,
         "windows": windows,
         "default_window": default_window,
+        "sectors": sectors,
         "themes": themes,
     }
 

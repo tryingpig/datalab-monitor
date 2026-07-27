@@ -8,6 +8,12 @@ const BRASS = "#c9a227";
 const RULE = "#24313c";
 const MUTED = "#748795";
 
+// 대분류 표시 순서 (없는 섹터는 이 뒤에 자동으로 붙음)
+const SECTOR_ORDER = [
+  "반도체", "AI·데이터센터", "에너지·전력", "모빌리티",
+  "방산", "조선·해운", "건설", "헬스케어", "소비재",
+];
+
 const $ = (id) => document.getElementById(id);
 
 /* ── 도구 ─────────────────────────────────────────── */
@@ -190,30 +196,48 @@ function renderThemes(data) {
       .join("");
 
     const widest = Math.max(...ranked.map((t) => Math.abs(chg(t) ?? 0)), 1);
+    const now = Date.now();
+    const isNew = (t) =>
+      t.first_seen && now - Date.parse(t.first_seen + "T00:00:00Z") <= 7 * 864e5;
 
-    $("themeRail").innerHTML = ranked
-      .map((theme) => {
-        const change = chg(theme);
-        const tone = toneOf(change);
-        const pct = (Math.abs(change ?? 0) / widest) * 50;
-        const dir = (change ?? 0) >= 0 ? "hot" : "cold";
-        const color = (change ?? 0) >= 0 ? HOT : COLD;
-        const values = sliceWindow(theme.series, days).map((p) => p.ratio);
+    const rowHTML = (theme) => {
+      const change = chg(theme);
+      const tone = toneOf(change);
+      const pct = (Math.abs(change ?? 0) / widest) * 50;
+      const dir = (change ?? 0) >= 0 ? "hot" : "cold";
+      const color = (change ?? 0) >= 0 ? HOT : COLD;
+      const values = sliceWindow(theme.series, days).map((p) => p.ratio);
+      const badge = isNew(theme) ? `<span class="rail__new">NEW</span>` : "";
 
-        return `<li class="rail__item">
-          <button class="rail__row" type="button" aria-expanded="false" data-name="${esc(theme.name)}">
-            <span class="rail__name">${esc(theme.name)}
-              <span class="rail__keywords">${esc(theme.keywords.join(" · "))}</span>
-            </span>
-            ${sparkline(values, 64, 20, color)}
-            <span class="rail__bar">
-              <span class="rail__fill rail__fill--${dir}" style="width:${pct.toFixed(1)}%"></span>
-            </span>
-            <span class="rail__change ${tone}">${signed(change)}</span>
-          </button>
-        </li>`;
-      })
-      .join("");
+      return `<li class="rail__item">
+        <button class="rail__row" type="button" aria-expanded="false" data-name="${esc(theme.name)}">
+          <span class="rail__name">${esc(theme.name)}${badge}
+            <span class="rail__keywords">${esc(theme.keywords.join(" · "))}</span>
+          </span>
+          ${sparkline(values, 64, 20, color)}
+          <span class="rail__bar">
+            <span class="rail__fill rail__fill--${dir}" style="width:${pct.toFixed(1)}%"></span>
+          </span>
+          <span class="rail__change ${tone}">${signed(change)}</span>
+        </button>
+      </li>`;
+    };
+
+    // 대분류로 묶어서 렌더 — 섹터는 고정 순서, 섹터 안은 변화율 정렬(ranked 순서 유지)
+    const buckets = new Map();
+    ranked.forEach((t) => {
+      const s = t.sector || "기타";
+      (buckets.get(s) || buckets.set(s, []).get(s)).push(t);
+    });
+    const order = [...SECTOR_ORDER, ...buckets.keys()];
+    const done = new Set();
+    let html = "";
+    for (const s of order) {
+      if (done.has(s) || !buckets.has(s)) continue;
+      done.add(s);
+      html += `<li class="rail__sector">${esc(s)}</li>` + buckets.get(s).map(rowHTML).join("");
+    }
+    $("themeRail").innerHTML = html;
   }
 
   draw(current);

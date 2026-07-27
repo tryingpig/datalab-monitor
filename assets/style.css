@@ -254,6 +254,34 @@ b, strong { font-weight: 600; color: var(--text); }
 
 .rail__item { border-bottom: 1px solid var(--rule); }
 
+/* 대분류 섹션 헤더 */
+.rail__sector {
+  padding: 14px 8px 5px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass);
+  border-bottom: 1px solid var(--rule);
+}
+.rail__sector:first-child { padding-top: 4px; }
+
+/* 신규 테마 배지 */
+.rail__new {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--brass);
+  color: var(--ground);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
 .rail__row {
   width: 100%;
   display: grid;

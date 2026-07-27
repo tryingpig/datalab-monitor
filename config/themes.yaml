@@ -28,41 +28,26 @@ smooth_days: 7
 # groups 는 폴백용 정적 목록입니다. 평소에는 sync_notion.py 가 Notion
 # 'Datalab-Monitor' DB 에서 받아 config/themes.groups.json 을 만들고 그걸 우선 씁니다.
 # (Notion 토큰이 없거나 동기화 실패 시에만 아래 목록으로 되돌아갑니다.)
-# 그룹당 키워드는 최대 20개.
+# Notion DB 와 동일하게 유지 — 그룹당 키워드 최대 20개.
 groups:
-  - groupName: HBM·메모리
-    keywords: [HBM, 고대역폭메모리, HBM4]
-  - groupName: 반도체기판(ABF·유리)
-    keywords: [유리기판, 글라스기판, ABF기판, TGV]
-  - groupName: 실리콘포토닉스·CPO
-    keywords: [실리콘포토닉스, CPO, 광트랜시버]
-  - groupName: 파운드리
-    keywords: [파운드리, 2나노, TSMC]
-  - groupName: AI 데이터센터
-    keywords: [AI데이터센터, 데이터센터, 액침냉각]
-  - groupName: 전력기기·전선
-    keywords: [변압기, 전력기기, 초고압케이블]
-  - groupName: 원전·SMR
-    keywords: [SMR, 소형모듈원자로, 원전주]
-  - groupName: 수소·연료전지
-    keywords: [수소, 연료전지, 수소차]
-  - groupName: 2차전지·ESS
-    keywords: [2차전지, 전고체배터리, ESS]
-  - groupName: 조선·방산
-    keywords: [조선주, 방산주, K방산]
-  - groupName: 로봇·피지컬AI
-    keywords: [휴머노이드, 휴머노이드로봇, 피지컬AI]
-  - groupName: 로봇수술·의료AI
-    keywords: [의료AI, 로봇수술]
-  - groupName: 비만치료제
-    keywords: [비만치료제, 위고비, GLP-1]
-  - groupName: 양자컴퓨팅
-    keywords: [양자컴퓨팅, 양자컴퓨터]
-  - groupName: 자동차
-    keywords: [전기차, 완성차, 자동차실적]
-  - groupName: 건설
-    keywords: [건설주, 재건축]
-  - groupName: 운송·해운
-    keywords: [해운, 운임, HMM]
-  - groupName: 음식료
-    keywords: [음식료, 라면수출]
+  - {groupName: HBM, sector: 반도체, keywords: [HBM, 고대역폭메모리, HBM4]}
+  - {groupName: 유리기판·ABF, sector: 반도체, keywords: [유리기판, 글라스기판, ABF기판, TGV]}
+  - {groupName: 실리콘포토닉스·CPO, sector: 반도체, keywords: [실리콘포토닉스, CPO, 광트랜시버]}
+  - {groupName: 파운드리, sector: 반도체, keywords: [파운드리, 2나노, TSMC]}
+  - {groupName: AI 데이터센터, sector: AI·데이터센터, keywords: [AI데이터센터, 데이터센터, 액침냉각]}
+  - {groupName: 전력기기·전선, sector: 에너지·전력, keywords: [변압기, 전력기기, 초고압케이블]}
+  - {groupName: 원전·SMR, sector: 에너지·전력, keywords: [SMR, 소형모듈원자로, 원전주]}
+  - {groupName: 수소·연료전지, sector: 에너지·전력, keywords: [수소, 연료전지, 수소차]}
+  - {groupName: 2차전지·ESS, sector: 에너지·전력, keywords: [2차전지, 전고체배터리, ESS]}
+  - {groupName: 전기차, sector: 모빌리티, keywords: [전기차, 캐즘, 전기차수요]}
+  - {groupName: 자율주행·FSD, sector: 모빌리티, keywords: [자율주행, FSD, 로보택시, 라이다]}
+  - {groupName: 로봇·피지컬AI, sector: 모빌리티, keywords: [휴머노이드, 휴머노이드로봇, 피지컬AI]}
+  - {groupName: 지상·전차, sector: 방산, keywords: [전차, K2전차, 장갑차]}
+  - {groupName: 미사일·유도무기, sector: 방산, keywords: [미사일, 유도무기, 천궁]}
+  - {groupName: 항공우주, sector: 방산, keywords: [항공우주, KAI, 누리호]}
+  - {groupName: 함정·방산조선, sector: 방산, keywords: [함정, 잠수함, 군함]}
+  - {groupName: 조선, sector: 조선·해운, keywords: [조선주, 조선업, LNG선]}
+  - {groupName: 해운·운임, sector: 조선·해운, keywords: [해운, 운임, HMM]}
+  - {groupName: 건설·재건축, sector: 건설, keywords: [건설주, 재건축, 정비사업]}
+  - {groupName: 비만치료제, sector: 헬스케어, keywords: [비만치료제, 위고비, GLP-1]}
+  - {groupName: K푸드·라면, sector: 소비재, keywords: [라면수출, K푸드, 불닭]}
