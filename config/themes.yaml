@@ -39,6 +39,8 @@ groups:
   - {groupName: 원전·SMR, sector: 에너지·전력, keywords: [SMR, 소형모듈원자로, 원전주]}
   - {groupName: 수소·연료전지, sector: 에너지·전력, keywords: [수소, 연료전지, 수소차]}
   - {groupName: 2차전지·ESS, sector: 에너지·전력, keywords: [2차전지, 전고체배터리, ESS]}
+  - {groupName: 태양광, sector: 에너지·전력, keywords: [태양광, 폴리실리콘, 태양광발전]}
+  - {groupName: 풍력, sector: 에너지·전력, keywords: [풍력, 해상풍력, 풍력발전]}
   - {groupName: 전기차, sector: 모빌리티, keywords: [전기차, 캐즘, 전기차수요]}
   - {groupName: 자율주행·FSD, sector: 모빌리티, keywords: [자율주행, FSD, 로보택시, 라이다]}
   - {groupName: 로봇·피지컬AI, sector: 모빌리티, keywords: [휴머노이드, 휴머노이드로봇, 피지컬AI]}
