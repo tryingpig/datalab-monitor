@@ -51,3 +51,4 @@ groups:
   - {groupName: 건설·재건축, sector: 건설, keywords: [건설주, 재건축, 정비사업]}
   - {groupName: 비만치료제, sector: 헬스케어, keywords: [비만치료제, 위고비, GLP-1]}
   - {groupName: K푸드·라면, sector: 소비재, keywords: [라면수출, K푸드, 불닭]}
+  - {groupName: 화장품, sector: 소비재, keywords: [화장품, K뷰티, 인디뷰티]}
