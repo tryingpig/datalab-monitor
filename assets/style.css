@@ -158,6 +158,7 @@ b, strong { font-weight: 600; color: var(--text); }
 
 .winbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 18px;
 }
