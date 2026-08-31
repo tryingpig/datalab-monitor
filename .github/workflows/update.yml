@@ -2,8 +2,11 @@ name: 데이터 갱신
 
 on:
   schedule:
-    # GitHub Actions 는 UTC 기준입니다. 09:30 UTC = 18:30 KST, 평일만.
-    - cron: "30 9 * * 1-5"
+    # GitHub Actions 는 UTC 기준입니다. 평일만.
+    # 정각·30분처럼 붐비는 슬롯은 GitHub이 schedule을 크게 지연시키고 심하면 버린다.
+    # "30 9"를 쓰던 8/27~8/31에 10~11시간 지연 끝에 실행 자체가 누락됐다(rs-tracker 동일).
+    # → 임의의 분으로 옮기고, rs-tracker(09:47)와도 겹치지 않게 분산한다.
+    - cron: "58 9 * * 1-5"   # 18:58 KST (09:58 UTC)
   workflow_dispatch:
 
 permissions:
